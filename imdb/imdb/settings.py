@@ -37,11 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'social_auth',
     'application',
 ]
 
 MIDDLEWARE_CLASSES = [
-    'django.middleware.security.SecurityMiddleware',
+    #'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -50,6 +51,9 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+GOOGLE_OAUTH2_CLIENT_ID="645063322127-u2po492h3k7h8ion07f18j7s8751a3nl.apps.googleusercontent.com"
+GOOGLE_OAUTH2_CLIENT_SECRET="JtW05mcsoSCJrMfExgWWTsBv"
 
 ROOT_URLCONF = 'imdb.urls'
 
@@ -119,8 +123,14 @@ USE_L10N = True
 
 USE_TZ = True
 
+LOGIN_REDIRECT_URL = '/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/dev/howto/static-files/
 
 STATIC_URL = '/static/'
+
+AUTHENTICATION_BACKENDS = (
+			    'social_auth.backends.google.GoogleOAuth2Backend',
+			    'django.contrib.auth.backends.ModelBackend',
+			  )
