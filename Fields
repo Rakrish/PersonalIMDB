@@ -1,0 +1,24 @@
+Preference form
+	Genre
+		Action
+		Adventure
+		Comedy
+		Crime
+		Drama
+		Historical
+		Horror
+		Mystery
+		Romance
+		Thriller
+	Type
+		Movie
+		TV Show
+			If it is TV Show then extra field for running length:
+			Episode length:
+				Half hour
+				One hour
+
+
+Database details:
+	CHECK MODEL FILE IN APPLICATION FOLDER
+			
