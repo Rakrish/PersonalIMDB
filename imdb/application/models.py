@@ -33,3 +33,11 @@ class Items(models.Model):
     class Meta:
         managed = True
         db_table = 'Items'
+
+class Subscribers(models.Model):
+    userid = models.ForeignKey("User")  # Field name made lowercase. 
+    item = models.ForeignKey("Items")  # Field name made lowercase.
+
+    class Meta:
+        managed = True
+        db_table = 'Subscribers'
