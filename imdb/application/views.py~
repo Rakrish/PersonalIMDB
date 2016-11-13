@@ -3,8 +3,12 @@ from application.models import User
 from application.models import UserPreference
 from application.models import Items
 from application.models import Subscribers
+from django.db.models import Q
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
+@csrf_exempt
 def login(request):
 	subscribed_list=[]
 	if request.method == 'POST':
@@ -14,35 +18,72 @@ def login(request):
 		request.session['email']=email
 		qset=Q()
 		qset = Q(email__icontains=email)
-		user=User.objects.get(qset)
-		if user and request.session['email']==email:
-			qset1 = Q(useridid_id_icontains=user.id)
-			isSubscriber=Subscribers.objects.filter(qset1)
-			if isSubscriber:
-				sub=name+'_list.html'	
-				itemlist=isSubscriber.values_list("item_id",flat=True)	
-				for j in itemlist:
-					qset2 = Q(id__icontains=j)
-					items=Items.objects.get(qset2)
-					subscribed_list.append(items)
-				return render(request, sub, {"sublist":subscribed_list})						
-			else:
-				return render(request, 'pref_form.html', {"name":name});
+		try:
+			user=User.objects.get(qset)
+			if request.session['email']==email:
+				isSubscriber=Subscribers.objects.filter(userid_id=user.id)
+				if isSubscriber:
+					sub=name+'_list.html'	
+					itemlist=isSubscriber.values_list("item_id",flat=True)	
+					for j in itemlist:
+						qset2 = Q(id__icontains=j)
+						items=Items.objects.get(qset2)
+						subscribed_list.append(items)
+					return HttpResponse(subscribed_list)
+					#return render(request, sub, {"sublist":subscribed_list})						
+				else:
+					#return HttpResponse(name)
+					return render(request, 'pref_form.html', {"name":name});
+		except User.DoesNotExist:
+			query=User(username=name,email=email)
+			query.save()
+			return HttpResponse(name)
 		
 def savePreferences(request):
 	#TODO
 	#Save preferences for a particular user
-	pass
+	if request.method == 'POST':
+		data=request.POST
+		genre=data["genre"]
+		type=data["type"]
+		other=data["eplength"]
+		email=request.session['email']
+		if email:
+			qset=Q()
+			qset = Q(email__icontains=email)
+			user=User.objects.get(qset)
+			query=UserPreference(userid_id=user.id,genre=genre,type=type,other=other)
+			query.save()
+			return HttpResponse("Preference saved")
+
 
 def getPreferences(request):
 	#TODO
 	#View preferences for a particular user
-	pass
+	#if request.method == 'POST':
+	email=request.session['email']
+	if email:
+		qset = Q(email__icontains=email)
+		user=User.objects.get(qset)
+		qset1 = Q(userid_id_icontains=user.id)
+		preferences=UserPreference.objects.filter(qset1)
+		return HttpResponse(preferences)
+	else:
+		return HttpResponse("Please login");
+		
+	
 
 def getItemList(request):
 	#Get all item list
 	#TODO
-	pass
+	#if request.method == 'POST':
+	itemlist=[]
+	totalitems=[]
+	items=Items.objects.all()
+	for i in items:
+		itemlist=[i.type,i.genre,i.title,i.synopsis,i.imageurl,i.day,i.time,i.id]
+		totalitems.append(itemlist)
+	return HttpResponse(totalitems)
 
 def getItemDetails(request):
 	#Get particular item details
@@ -52,14 +93,45 @@ def getItemDetails(request):
 def unsubscribe(request):
 	#TODO
 	#Unsubscribe list of shows for the user
-	pass
+	if request.method == 'POST':
+		data=request.POST
+		item=data["item"]
+		email=request.session['email']
+		if email:
+			qset = Q(email__icontains=email)
+			user=User.objects.get(qset)
+			instance = Subscribers.objects.filter(userid_id=user.id).filter(item_id=item)
+			instance.delete()
+		return redirect(home)
+
 
 def subscribe(request):
 	#TODO
 	#Subscribe list of shows for the user
+	if request.method == 'POST':
+		data=request.POST
+		item=data["item"]
+		email=request.session['email']
+		if email:
+			qset = Q(email__icontains=email)
+			user=User.objects.get(qset)
+			query=Subscribers(userid_id=user.id,item_id=item)
+			query.save()
+	
 
 def home(request):
 	#TODO
 	#View subscribed details
-	pass
+	email=request.session['email']
+	if email:
+		qset = Q(email__icontains=email)
+		user=User.objects.get(qset)	
+		instance = Subscribers.objects.filter(userid_id=user.id)
+		for i in instance:
+			items=Items.objects.get(i.item_id)
+			itemlist=[items.type,items.genre,items.title,items.synopsis,items.imageurl,items.day,items.time,items.id]
+			totalitems.append(itemlist)	
+		return HttpResponse(totalitems)		
+	else:
+		return HttpResponse("Please login");
 			
